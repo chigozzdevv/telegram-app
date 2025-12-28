@@ -26,6 +26,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data: { session } } = await supabase.auth.getSession()
       
       if (session?.user) {
+        localStorage.setItem('access_token', session.access_token)
+        
         const { data: profile } = await supabase
           .from('users')
           .select('*')
@@ -53,6 +55,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
 
       if (error) throw error
+
+      if (data.session) {
+        localStorage.setItem('access_token', data.session.access_token)
+      }
 
       if (data.user) {
         const { data: profile } = await supabase
@@ -83,6 +89,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
 
       if (error) throw error
+
+      if (data.session) {
+        localStorage.setItem('access_token', data.session.access_token)
+      }
 
       if (data.user) {
         const { error: profileError } = await supabase
@@ -118,6 +128,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await zegoService.logout()
       await supabase.auth.signOut()
+      localStorage.removeItem('access_token')
       set({ user: null })
     } catch (error) {
       console.error('Logout failed:', error)
