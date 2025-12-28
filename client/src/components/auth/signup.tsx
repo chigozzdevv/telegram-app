@@ -27,105 +27,153 @@ export function Signup() {
     }
   }
 
+  const inputStyle = {
+    width: '100%',
+    padding: '16px 18px',
+    fontSize: '16px',
+    backgroundColor: '#1a1a2e',
+    border: '1px solid #3a3a5a',
+    borderRadius: '8px',
+    color: 'white',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#0d0d1a',
+      padding: '20px'
+    }}>
+      <div style={{ width: '100%', maxWidth: '400px' }}>
+        <h1 style={{ 
+          fontSize: '32px', 
+          fontWeight: 700, 
+          color: 'white', 
+          marginBottom: '8px',
+          textAlign: 'center'
+        }}>
+          Create account
+        </h1>
+        <p style={{ 
+          color: '#888', 
+          fontSize: '16px', 
+          marginBottom: '40px',
+          textAlign: 'center'
+        }}>
+          Sign up to get started
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          {error && (
+            <div style={{
+              marginBottom: '24px',
+              padding: '16px',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              borderRadius: '8px',
+              border: '1px solid #ef4444'
+            }}>
+              <p style={{ color: '#ef4444', fontSize: '14px', margin: 0 }}>{error}</p>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Create an account
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Join us and start chatting
+          )}
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ 
+              display: 'block', 
+              fontSize: '14px', 
+              fontWeight: 500, 
+              color: '#ccc', 
+              marginBottom: '10px' 
+            }}>
+              Username
+            </label>
+            <input
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ 
+              display: 'block', 
+              fontSize: '14px', 
+              fontWeight: 500, 
+              color: '#ccc', 
+              marginBottom: '10px' 
+            }}>
+              Email
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={{ marginBottom: '32px' }}>
+            <label style={{ 
+              display: 'block', 
+              fontSize: '14px', 
+              fontWeight: 500, 
+              color: '#ccc', 
+              marginBottom: '10px' 
+            }}>
+              Password
+            </label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              style={inputStyle}
+            />
+            <p style={{ marginTop: '8px', fontSize: '13px', color: '#666' }}>
+              Must be at least 6 characters
             </p>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            {error && (
-              <div className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 p-4">
-                <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-              </div>
-            )}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '16px',
+              fontSize: '16px',
+              fontWeight: 600,
+              color: 'white',
+              backgroundColor: '#3b82f6',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+            }}
+          >
+            {loading ? 'Creating account...' : 'Create account'}
+          </button>
 
-            <div className="space-y-5">
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Username
-                </label>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-500 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                  placeholder="johndoe"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-500 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                  placeholder="you@example.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-500 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                  placeholder="••••••••"
-                />
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Must be at least 6 characters
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-6 py-3 px-4 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? 'Creating account...' : 'Create account'}
-            </button>
-
-            <p className="text-center mt-6 text-gray-600 dark:text-gray-400">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
-              >
-                Sign in
-              </Link>
-            </p>
-          </form>
-        </div>
+          <p style={{ 
+            textAlign: 'center', 
+            marginTop: '32px', 
+            color: '#888', 
+            fontSize: '15px' 
+          }}>
+            Already have an account?{' '}
+            <Link to="/login" style={{ color: '#3b82f6', textDecoration: 'none' }}>
+              Sign in
+            </Link>
+          </p>
+        </form>
       </div>
     </div>
   )
