@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { supabase } from '../config/supabase'
-import { authMiddleware, AuthRequest } from '../middleware/auth'
+import { supabase } from '../config/supabase.js'
+import { authMiddleware, AuthRequest } from '../middleware/auth.js'
 
 export const messageRoutes = Router()
 

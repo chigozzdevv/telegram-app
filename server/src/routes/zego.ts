@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { zegoService } from '../services/zego-service'
-import { authMiddleware, AuthRequest } from '../middleware/auth'
+import { zegoService } from '../services/zego-service.js'
+import { authMiddleware, AuthRequest } from '../middleware/auth.js'
 
 export const zegoRoutes = Router()
 

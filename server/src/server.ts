@@ -1,12 +1,12 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import { authRoutes } from './routes/auth'
-import { userRoutes } from './routes/users'
-import { conversationRoutes } from './routes/conversations'
-import { messageRoutes } from './routes/messages'
-import { zegoRoutes } from './routes/zego'
-import { errorHandler } from './middleware/error-handler'
+import { authRoutes } from './routes/auth.js'
+import { userRoutes } from './routes/users.js'
+import { conversationRoutes } from './routes/conversations.js'
+import { messageRoutes } from './routes/messages.js'
+import { zegoRoutes } from './routes/zego.js'
+import { errorHandler } from './middleware/error-handler.js'
 
 dotenv.config()
 
