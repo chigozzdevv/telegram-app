@@ -250,22 +250,24 @@ export const useChatStore = create<ChatState>((set, get) => ({
     } catch {}
   },
 
-  addReaction: async (messageId, _conversationId, emoji) => {
+  addReaction: async (messageId, conversationId, emoji) => {
     try {
       const rawMessage = get().rawMessages[messageId]
       if (!rawMessage) throw new Error('Message not found')
       await zegoService.addReaction(rawMessage, emoji)
+      get().loadMessages(conversationId)
     } catch (error) {
       console.error('Failed to add reaction:', error)
       throw error
     }
   },
 
-  removeReaction: async (messageId, _conversationId, emoji) => {
+  removeReaction: async (messageId, conversationId, emoji) => {
     try {
       const rawMessage = get().rawMessages[messageId]
       if (!rawMessage) throw new Error('Message not found')
       await zegoService.removeReaction(rawMessage, emoji)
+      get().loadMessages(conversationId)
     } catch (error) {
       console.error('Failed to remove reaction:', error)
       throw error

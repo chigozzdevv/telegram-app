@@ -9,8 +9,24 @@ interface ConversationItemProps {
 
 export function ConversationItem({ conversation, isActive, onClick }: ConversationItemProps) {
   const otherUser = conversation.other_user
-  const lastMessageContent = conversation.lastMessage?.message || conversation.lastMessage?.fileDownloadUrl || ''
-  const lastMessageTime = conversation.lastMessage?.timestamp
+  const lastMsg = conversation.lastMessage
+  
+  let lastMessageContent = ''
+  if (lastMsg) {
+    if (lastMsg.type === 1) {
+      lastMessageContent = lastMsg.message || ''
+    } else if (lastMsg.type === 11) {
+      lastMessageContent = '📷 Image'
+    } else if (lastMsg.type === 12) {
+      lastMessageContent = '📎 File'
+    } else if (lastMsg.type === 13) {
+      lastMessageContent = '🎵 Audio'
+    } else if (lastMsg.type === 14) {
+      lastMessageContent = '🎬 Video'
+    }
+  }
+  
+  const lastMessageTime = lastMsg?.timestamp
 
   return (
     <button
