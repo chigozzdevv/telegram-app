@@ -10,7 +10,7 @@ interface UserListProps {
 
 export function UserList({ onSelectUser }: UserListProps) {
   const { user: currentUser } = useAuthStore()
-  const { createConversation, setActiveConversation } = useChatStore()
+  const { startConversation, setActiveConversation } = useChatStore()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -23,7 +23,7 @@ export function UserList({ onSelectUser }: UserListProps) {
     try {
       setLoading(true)
       const data = await apiService.getUsers(search)
-      setUsers(data.filter(u => u.id !== currentUser?.id))
+      setUsers(data.filter((u: User) => u.id !== currentUser?.id))
     } catch (error) {
       console.error('Failed to load users:', error)
     } finally {
@@ -33,11 +33,11 @@ export function UserList({ onSelectUser }: UserListProps) {
 
   const handleSelectUser = async (userId: string) => {
     try {
-      const conversationId = await createConversation(userId)
+      const conversationId = await startConversation(userId)
       setActiveConversation(conversationId)
       onSelectUser(userId)
     } catch (error) {
-      console.error('Failed to create conversation:', error)
+      console.error('Failed to start conversation:', error)
     }
   }
 

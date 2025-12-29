@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useChatStore } from '@/store/chat-store'
 import { ConversationItem } from './conversation-item'
 
@@ -8,11 +7,7 @@ interface ConversationListProps {
 }
 
 export function ConversationList({ onSelectConversation, activeConversationId }: ConversationListProps) {
-  const { conversations, loadConversations } = useChatStore()
-
-  useEffect(() => {
-    loadConversations()
-  }, [loadConversations])
+  const { conversations } = useChatStore()
 
   return (
     <div className="flex-1 overflow-y-auto">

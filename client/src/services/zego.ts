@@ -8,11 +8,16 @@ export class ZegoService {
   private zim: any = null
   private isInitialized = false
   private currentUserId: string | null = null
+  private shortUserId: string | null = null
   private messageCallbacks: ((message: Message) => void)[] = []
   private typingCallbacks: ((status: TypingStatus) => void)[] = []
   private connectionCallbacks: ((connected: boolean) => void)[] = []
-
-  private shortUserId: string | null = null
+  private conversationCallbacks: ((conversations: any[]) => void)[] = []
+  private unreadCountCallbacks: ((count: number) => void)[] = []
+  private messageStatusCallbacks: ((messageId: string, status: 'sending' | 'success' | 'failed') => void)[] = []
+  private messageEditedCallbacks: ((message: Message) => void)[] = []
+  private reactionCallbacks: ((messageId: string, reactions: any[]) => void)[] = []
+  private receiptCallbacks: ((messageId: string, status: 'processing' | 'done') => void)[] = []
 
   static getInstance(): ZegoService {
     if (!ZegoService.instance) {
@@ -32,16 +37,14 @@ export class ZegoService {
     try {
       this.zim = ZIM.create({ appID: config.zego.appId })
       this.setupEventListeners()
-      
+
       const { token } = await apiService.getZegoToken(shortUserId)
-      
+
       await this.zim.login(shortUserId, { userName: shortUserId, token })
-      
+
       this.currentUserId = userId
       this.isInitialized = true
       this.notifyConnection(true)
-      
-      console.log('ZEGO initialized successfully')
     } catch (error) {
       console.error('ZEGO initialization failed:', error)
       throw error
@@ -56,9 +59,7 @@ export class ZegoService {
     })
 
     this.zim.on('connectionStateChanged', (_zim: any, { state, event }: any) => {
-      console.log('Connection state changed:', state, event)
       this.notifyConnection(state === 1)
-      
       if (state === 0 && event === 3) {
         this.reconnect()
       }
@@ -76,9 +77,7 @@ export class ZegoService {
                 is_typing: data.is_typing,
               })
             }
-          } catch (error) {
-            console.error('Failed to parse custom message:', error)
-          }
+          } catch {}
         } else {
           const message = this.convertZegoMessage(msg, fromConversationID)
           this.notifyMessage(message)
@@ -86,16 +85,48 @@ export class ZegoService {
       })
     })
 
-    this.zim.on('tokenWillExpire', async (_zim: any, { second }: any) => {
-      console.log('Token will expire in', second, 'seconds')
+    this.zim.on('tokenWillExpire', async () => {
       if (this.shortUserId) {
         try {
           const { token } = await apiService.getZegoToken(this.shortUserId)
           await this.zim.renewToken(token)
-        } catch (error) {
-          console.error('Failed to renew token:', error)
-        }
+        } catch {}
       }
+    })
+
+    this.zim.on('conversationChanged', (_zim: any, { infoList }: any) => {
+      this.conversationCallbacks.forEach(cb => cb(infoList))
+    })
+
+    this.zim.on('conversationTotalUnreadMessageCountUpdated', (_zim: any, { totalUnreadMessageCount }: any) => {
+      this.unreadCountCallbacks.forEach(cb => cb(totalUnreadMessageCount))
+    })
+
+    this.zim.on('messageSentStatusChanged', (_zim: any, { infos }: any) => {
+      infos.forEach((info: any) => {
+        const status = info.status === 1 ? 'success' : info.status === 2 ? 'failed' : 'sending'
+        this.messageStatusCallbacks.forEach(cb => cb(info.message.messageID.toString(), status))
+      })
+    })
+
+    this.zim.on('messageReceiptChanged', (_zim: any, { infos }: any) => {
+      infos.forEach((info: any) => {
+        const status = info.status === 1 ? 'done' : 'processing'
+        this.receiptCallbacks.forEach(cb => cb(info.messageID.toString(), status))
+      })
+    })
+
+    this.zim.on('messageReactionsChanged', (_zim: any, { reactions }: any) => {
+      reactions.forEach((r: any) => {
+        this.reactionCallbacks.forEach(cb => cb(r.messageID.toString(), r.reactionList))
+      })
+    })
+
+    this.zim.on('messageEdited', (_zim: any, { messageList }: any) => {
+      messageList.forEach((msg: any) => {
+        const message = this.convertZegoMessage(msg, msg.conversationID)
+        this.messageEditedCallbacks.forEach(cb => cb(message))
+      })
     })
   }
 
@@ -104,19 +135,33 @@ export class ZegoService {
       try {
         const { token } = await apiService.getZegoToken(this.shortUserId)
         await this.zim.login(this.shortUserId, { userName: this.shortUserId, token })
-      } catch (error) {
-        console.error('Reconnection failed:', error)
-      }
+      } catch {}
     }
+  }
+
+  async queryConversationList(count: number = 100): Promise<any[]> {
+    if (!this.zim) return []
+    const config = { nextConversation: null, count }
+    const { conversationList } = await this.zim.queryConversationList(config)
+    return conversationList
+  }
+
+  async queryHistoryMessages(conversationId: string, count: number = 50, nextMessage: any = null): Promise<Message[]> {
+    if (!this.zim) return []
+    const config = { nextMessage, count, reverse: true }
+    const { messageList } = await this.zim.queryHistoryMessage(conversationId, 0, config)
+    return messageList.map((msg: any) => this.convertZegoMessage(msg, conversationId))
   }
 
   async sendMessage(
     conversationId: string,
     content: string,
     type: 'text' | 'image' | 'file' | 'audio' | 'video' = 'text',
-    replyTo?: string,
+    replyToMessage?: any,
     file?: File,
-    onProgress?: (current: number, total: number) => void
+    onProgress?: (current: number, total: number) => void,
+    audioDuration?: number,
+    videoDuration?: number
   ): Promise<Message> {
     if (!this.zim) throw new Error('ZEGO not initialized')
 
@@ -127,21 +172,16 @@ export class ZegoService {
     } else if (file) {
       const typeMap = { image: 11, file: 12, audio: 13, video: 14 }
       messageObj = { type: typeMap[type], fileLocalPath: file }
-      
-      if (type === 'audio') {
-        messageObj.audioDuration = 0 // Will be set by ZEGO
-      } else if (type === 'video') {
-        messageObj.videoDuration = 0
+      if (type === 'audio' && audioDuration) {
+        messageObj.audioDuration = audioDuration
+      } else if (type === 'video' && videoDuration) {
+        messageObj.videoDuration = videoDuration
       }
     } else {
       throw new Error('File required for media messages')
     }
 
-    if (replyTo) {
-      messageObj.extendedData = JSON.stringify({ reply_to: replyTo })
-    }
-
-    const config = { priority: 1 }
+    const sendConfig = { priority: 2, hasReceipt: true }
     const notification = {
       onMessageAttached: () => {},
       onMediaUploadingProgress: (_: any, currentFileSize: number, totalFileSize: number) => {
@@ -149,13 +189,12 @@ export class ZegoService {
       },
     }
 
-    const result = await this.zim.sendMessage(
-      messageObj,
-      conversationId,
-      0,
-      config,
-      notification
-    )
+    let result
+    if (replyToMessage) {
+      result = await this.zim.replyMessage(messageObj, replyToMessage, sendConfig, notification)
+    } else {
+      result = await this.zim.sendMessage(messageObj, conversationId, 0, sendConfig, notification)
+    }
 
     return this.convertZegoMessage(result.message, conversationId)
   }
@@ -173,61 +212,77 @@ export class ZegoService {
     }
 
     try {
-      await this.zim.sendMessage(customMessage, conversationId, 0, { priority: 1 })
-    } catch (error) {
-      console.error('Failed to send typing status:', error)
-    }
+      await this.zim.sendMessage(customMessage, conversationId, 0, { priority: 1, disableUnreadMessageCount: true })
+    } catch {}
   }
 
-  async addReaction(messageId: string, conversationId: string, emoji: string): Promise<void> {
+  async addReaction(message: any, emoji: string): Promise<void> {
     if (!this.zim) throw new Error('ZEGO not initialized')
-
-    const customMessage = {
-      type: 200,
-      message: JSON.stringify({
-        type: 'reaction',
-        message_id: messageId,
-        emoji,
-        action: 'add',
-      }),
-    }
-
-    await this.zim.sendMessage(customMessage, conversationId, 0, { priority: 1 })
+    await this.zim.addMessageReaction(emoji, message)
   }
 
-  async removeReaction(messageId: string, conversationId: string, emoji: string): Promise<void> {
+  async removeReaction(message: any, emoji: string): Promise<void> {
     if (!this.zim) throw new Error('ZEGO not initialized')
+    await this.zim.deleteMessageReaction(emoji, message)
+  }
 
-    const customMessage = {
-      type: 200,
-      message: JSON.stringify({
-        type: 'reaction',
-        message_id: messageId,
-        emoji,
-        action: 'remove',
-      }),
-    }
+  async clearConversationUnread(conversationId: string): Promise<void> {
+    if (!this.zim) return
+    await this.zim.clearConversationUnreadMessageCount(conversationId, 0)
+  }
 
-    await this.zim.sendMessage(customMessage, conversationId, 0, { priority: 1 })
+  async sendReadReceipt(messages: any[], conversationId: string): Promise<void> {
+    if (!this.zim || messages.length === 0) return
+    await this.zim.sendMessageReceiptsRead(messages, conversationId, 0)
+  }
+
+  async deleteMessages(messages: any[], conversationId: string): Promise<void> {
+    if (!this.zim) return
+    await this.zim.deleteMessages(messages, conversationId, 0, { isAlsoDeleteServerMessage: true })
+  }
+
+  async deleteAllMessages(conversationId: string): Promise<void> {
+    if (!this.zim) return
+    await this.zim.deleteAllMessage(conversationId, 0, { isAlsoDeleteServerMessage: true })
+  }
+
+  async editMessage(message: any, newContent: string): Promise<Message> {
+    if (!this.zim) throw new Error('ZEGO not initialized')
+    message.message = newContent
+    const { message: edited } = await this.zim.editMessage(message, {}, { onMessageAttached: () => {} })
+    return this.convertZegoMessage(edited, edited.conversationID)
+  }
+
+  async deleteConversation(conversationId: string): Promise<void> {
+    if (!this.zim) return
+    await this.zim.deleteConversation(conversationId, 0, { isAlsoDeleteServerConversation: true })
+  }
+
+  async queryMessagesBySeq(messageSeqs: number[], conversationId: string): Promise<Message[]> {
+    if (!this.zim) return []
+    const { messageList } = await this.zim.queryMessages(messageSeqs, conversationId, 0)
+    return messageList.map((msg: any) => this.convertZegoMessage(msg, conversationId))
   }
 
   private convertZegoMessage(zegoMsg: any, conversationId: string): Message {
     let replyTo: string | undefined
-    
-    if (zegoMsg.extendedData) {
-      try {
-        const data = JSON.parse(zegoMsg.extendedData)
-        replyTo = data.reply_to
-      } catch (error) {
-        console.error('Failed to parse extended data:', error)
-      }
+    let repliedInfo: any = undefined
+
+    if (zegoMsg.repliedInfo) {
+      repliedInfo = zegoMsg.repliedInfo
+      replyTo = zegoMsg.repliedInfo.messageInfo?.messageID?.toString()
     }
 
-    // For media messages, use fileDownloadUrl as content
     let content = zegoMsg.message || ''
     if (zegoMsg.fileDownloadUrl) {
       content = zegoMsg.fileDownloadUrl
     }
+
+    const reactions = (zegoMsg.reactions || []).map((r: any) => ({
+      emoji: r.reactionType,
+      users: r.userList || [],
+      count: r.totalCount || 0,
+    }))
 
     return {
       id: zegoMsg.messageID.toString(),
@@ -236,11 +291,14 @@ export class ZegoService {
       content,
       type: this.getMessageType(zegoMsg.type),
       reply_to: replyTo,
-      reactions: [],
-      is_edited: false,
+      replied_info: repliedInfo,
+      reactions,
+      is_edited: zegoMsg.isUserInserted === false && zegoMsg.timestamp !== zegoMsg.orderKey,
       is_deleted: false,
+      is_read: zegoMsg.receiptStatus === 1,
       created_at: new Date(zegoMsg.timestamp).toISOString(),
       updated_at: new Date(zegoMsg.timestamp).toISOString(),
+      _raw: zegoMsg,
     }
   }
 
@@ -257,23 +315,47 @@ export class ZegoService {
 
   onMessage(callback: (message: Message) => void): () => void {
     this.messageCallbacks.push(callback)
-    return () => {
-      this.messageCallbacks = this.messageCallbacks.filter(cb => cb !== callback)
-    }
+    return () => { this.messageCallbacks = this.messageCallbacks.filter(cb => cb !== callback) }
   }
 
   onTyping(callback: (status: TypingStatus) => void): () => void {
     this.typingCallbacks.push(callback)
-    return () => {
-      this.typingCallbacks = this.typingCallbacks.filter(cb => cb !== callback)
-    }
+    return () => { this.typingCallbacks = this.typingCallbacks.filter(cb => cb !== callback) }
   }
 
   onConnection(callback: (connected: boolean) => void): () => void {
     this.connectionCallbacks.push(callback)
-    return () => {
-      this.connectionCallbacks = this.connectionCallbacks.filter(cb => cb !== callback)
-    }
+    return () => { this.connectionCallbacks = this.connectionCallbacks.filter(cb => cb !== callback) }
+  }
+
+  onConversationChanged(callback: (conversations: any[]) => void): () => void {
+    this.conversationCallbacks.push(callback)
+    return () => { this.conversationCallbacks = this.conversationCallbacks.filter(cb => cb !== callback) }
+  }
+
+  onTotalUnreadCountChanged(callback: (count: number) => void): () => void {
+    this.unreadCountCallbacks.push(callback)
+    return () => { this.unreadCountCallbacks = this.unreadCountCallbacks.filter(cb => cb !== callback) }
+  }
+
+  onMessageStatusChanged(callback: (messageId: string, status: 'sending' | 'success' | 'failed') => void): () => void {
+    this.messageStatusCallbacks.push(callback)
+    return () => { this.messageStatusCallbacks = this.messageStatusCallbacks.filter(cb => cb !== callback) }
+  }
+
+  onMessageEdited(callback: (message: Message) => void): () => void {
+    this.messageEditedCallbacks.push(callback)
+    return () => { this.messageEditedCallbacks = this.messageEditedCallbacks.filter(cb => cb !== callback) }
+  }
+
+  onReactionChanged(callback: (messageId: string, reactions: any[]) => void): () => void {
+    this.reactionCallbacks.push(callback)
+    return () => { this.reactionCallbacks = this.reactionCallbacks.filter(cb => cb !== callback) }
+  }
+
+  onReceiptChanged(callback: (messageId: string, status: 'processing' | 'done') => void): () => void {
+    this.receiptCallbacks.push(callback)
+    return () => { this.receiptCallbacks = this.receiptCallbacks.filter(cb => cb !== callback) }
   }
 
   private notifyMessage(message: Message): void {
@@ -306,6 +388,10 @@ export class ZegoService {
 
   getCurrentUserId(): string | null {
     return this.currentUserId
+  }
+
+  getShortUserId(): string | null {
+    return this.shortUserId
   }
 }
 

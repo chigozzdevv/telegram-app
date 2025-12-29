@@ -16,16 +16,13 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const conversationMessages = messages[conversationId] || []
-  
+
   const conversation = conversations.find(c => c.id === conversationId)
   const otherUser = conversation?.other_user
 
   const typingUsernames = (typingUsers[conversationId] || [])
     .filter(userId => userId !== user?.id)
-    .map(userId => {
-      const msg = conversationMessages.find(m => m.sender_id === userId)
-      return msg?.sender?.username || 'Someone'
-    })
+    .map(() => otherUser?.username || 'Someone')
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -36,10 +33,10 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
       <div className="px-6 py-4 border-b border-gray-800 bg-gray-900">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold text-lg">
-            {otherUser?.username?.[0]?.toUpperCase() || '?'}
+            {otherUser?.username?.[0]?.toUpperCase() || conversation?.conversationName?.[0]?.toUpperCase() || '?'}
           </div>
           <h2 className="text-lg font-semibold text-white">
-            {otherUser?.username || 'Unknown User'}
+            {otherUser?.username || conversation?.conversationName || 'Unknown User'}
           </h2>
         </div>
       </div>
@@ -56,6 +53,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
                 key={message.id}
                 message={message}
                 onReply={setReplyingTo}
+                conversationId={conversationId}
               />
             ))}
             <TypingIndicator usernames={typingUsernames} />

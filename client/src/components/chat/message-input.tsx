@@ -41,14 +41,14 @@ export function MessageInput({ conversationId, replyingTo, onCancelReply }: Mess
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!message.trim()) return
 
     try {
       await sendMessage(conversationId, message.trim(), replyingTo?.id)
       setMessage('')
       onCancelReply()
-      
+
       if (isTyping) {
         setIsTyping(false)
         sendTyping(conversationId, false)
@@ -70,7 +70,7 @@ export function MessageInput({ conversationId, replyingTo, onCancelReply }: Mess
       {replyingTo && (
         <div className="mb-3 p-3 bg-gray-800 rounded-lg flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400 mb-1">Replying to {replyingTo.sender?.username}</p>
+            <p className="text-xs text-gray-400 mb-1">Replying to</p>
             <p className="text-sm text-gray-300 truncate">{replyingTo.content}</p>
           </div>
           <button
@@ -81,7 +81,7 @@ export function MessageInput({ conversationId, replyingTo, onCancelReply }: Mess
           </button>
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="flex items-end gap-3">
         <textarea
           ref={inputRef}

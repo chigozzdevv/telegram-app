@@ -27,9 +27,23 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function ChatLayout() {
-  const { activeConversationId, setActiveConversation, addMessage, updateTypingStatus } = useChatStore()
+  const { 
+    activeConversationId, 
+    setActiveConversation, 
+    addMessage, 
+    updateTypingStatus,
+    updateConversations,
+    setTotalUnreadCount,
+    updateMessageStatus,
+    updateMessageReactions,
+    updateMessageReceipt,
+    handleEditedMessage,
+    loadConversations,
+  } = useChatStore()
 
   useEffect(() => {
+    loadConversations()
+
     const unsubscribeMessage = zegoService.onMessage((message) => {
       addMessage(message)
     })
@@ -38,11 +52,41 @@ function ChatLayout() {
       updateTypingStatus(status)
     })
 
+    const unsubscribeConversation = zegoService.onConversationChanged((infoList) => {
+      updateConversations(infoList)
+    })
+
+    const unsubscribeUnread = zegoService.onTotalUnreadCountChanged((count) => {
+      setTotalUnreadCount(count)
+    })
+
+    const unsubscribeStatus = zegoService.onMessageStatusChanged((messageId, status) => {
+      updateMessageStatus(messageId, status)
+    })
+
+    const unsubscribeReactions = zegoService.onReactionChanged((messageId, reactions) => {
+      updateMessageReactions(messageId, reactions)
+    })
+
+    const unsubscribeReceipt = zegoService.onReceiptChanged((messageId, status) => {
+      updateMessageReceipt(messageId, status)
+    })
+
+    const unsubscribeEdited = zegoService.onMessageEdited((message) => {
+      handleEditedMessage(message)
+    })
+
     return () => {
       unsubscribeMessage()
       unsubscribeTyping()
+      unsubscribeConversation()
+      unsubscribeUnread()
+      unsubscribeStatus()
+      unsubscribeReactions()
+      unsubscribeReceipt()
+      unsubscribeEdited()
     }
-  }, [addMessage, updateTypingStatus])
+  }, [])
 
   return (
     <div className="flex h-screen bg-gray-950">
