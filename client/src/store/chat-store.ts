@@ -61,7 +61,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   sendMessage: async (conversationId, content, replyTo) => {
     try {
-      const message = await zegoService.sendMessage(conversationId, content, 'text', replyTo)
+      const conversation = get().conversations.find(c => c.id === conversationId)
+      const otherUserId = conversation?.other_user?.id
+      if (!otherUserId) throw new Error('Could not find other user')
+      
+      const zegoConversationId = otherUserId.replace(/-/g, '').substring(0, 32)
+      
+      const message = await zegoService.sendMessage(zegoConversationId, content, 'text', replyTo)
       
       await apiService.saveMessage({
         id: message.id,
@@ -72,8 +78,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
         reply_to: replyTo,
       })
 
-      get().addMessage(message)
-      get().loadConversations() // Update conversation list
+      const messageWithConvId = { ...message, conversation_id: conversationId }
+      get().addMessage(messageWithConvId)
+      get().loadConversations()
     } catch (error) {
       console.error('Failed to send message:', error)
       throw error
@@ -82,8 +89,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   sendMediaMessage: async (conversationId, file, type, onProgress) => {
     try {
+      const conversation = get().conversations.find(c => c.id === conversationId)
+      const otherUserId = conversation?.other_user?.id
+      if (!otherUserId) throw new Error('Could not find other user')
+      
+      const zegoConversationId = otherUserId.replace(/-/g, '').substring(0, 32)
+      
       const message = await zegoService.sendMessage(
-        conversationId,
+        zegoConversationId,
         '',
         type,
         undefined,
@@ -99,9 +112,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         type,
       })
 
-      get().addMessage(message)
-      get().loadConversations() // Update conversation list
-      return message
+      const messageWithConvId = { ...message, conversation_id: conversationId }
+      get().addMessage(messageWithConvId)
+      get().loadConversations()
+      return messageWithConvId
     } catch (error) {
       console.error('Failed to send media message:', error)
       throw error
@@ -173,7 +187,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   sendTyping: async (conversationId, isTyping) => {
     try {
-      await zegoService.sendTypingStatus(conversationId, isTyping)
+      const conversation = get().conversations.find(c => c.id === conversationId)
+      const otherUserId = conversation?.other_user?.id
+      if (!otherUserId) return
+      
+      const zegoConversationId = otherUserId.replace(/-/g, '').substring(0, 32)
+      await zegoService.sendTypingStatus(zegoConversationId, isTyping)
     } catch (error) {
       console.error('Failed to send typing status:', error)
     }
@@ -182,10 +201,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
   addReaction: async (messageId, conversationId, emoji) => {
     const userId = zegoService.getCurrentUserId()
     try {
-      await zegoService.addReaction(messageId, conversationId, emoji)
+      const conversation = get().conversations.find(c => c.id === conversationId)
+      const otherUserId = conversation?.other_user?.id
+      if (!otherUserId) throw new Error('Could not find other user')
+      
+      const zegoConversationId = otherUserId.replace(/-/g, '').substring(0, 32)
+      
+      await zegoService.addReaction(messageId, zegoConversationId, emoji)
       await apiService.addReaction(messageId, emoji)
       
-      // Update local state
       set((state) => ({
         messages: {
           ...state.messages,
@@ -205,10 +229,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
   removeReaction: async (messageId, conversationId, emoji) => {
     const userId = zegoService.getCurrentUserId()
     try {
-      await zegoService.removeReaction(messageId, conversationId, emoji)
+      const conversation = get().conversations.find(c => c.id === conversationId)
+      const otherUserId = conversation?.other_user?.id
+      if (!otherUserId) throw new Error('Could not find other user')
+      
+      const zegoConversationId = otherUserId.replace(/-/g, '').substring(0, 32)
+      
+      await zegoService.removeReaction(messageId, zegoConversationId, emoji)
       await apiService.removeReaction(messageId, emoji)
       
-      // Update local state
       set((state) => ({
         messages: {
           ...state.messages,
