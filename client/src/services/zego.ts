@@ -150,7 +150,9 @@ export class ZegoService {
     if (!this.zim) return []
     const config = { nextMessage, count, reverse: true }
     const { messageList } = await this.zim.queryHistoryMessage(conversationId, 0, config)
-    return messageList.map((msg: any) => this.convertZegoMessage(msg, conversationId))
+    return messageList
+      .filter((msg: any) => msg.type !== 200)
+      .map((msg: any) => this.convertZegoMessage(msg, conversationId))
   }
 
   async sendMessage(
@@ -256,6 +258,11 @@ export class ZegoService {
   async deleteConversation(conversationId: string): Promise<void> {
     if (!this.zim) return
     await this.zim.deleteConversation(conversationId, 0, { isAlsoDeleteServerConversation: true })
+  }
+
+  async deleteAllConversations(): Promise<void> {
+    if (!this.zim) return
+    await this.zim.deleteAllConversations({ isAlsoDeleteServerConversation: true })
   }
 
   async queryMessagesBySeq(messageSeqs: number[], conversationId: string): Promise<Message[]> {
