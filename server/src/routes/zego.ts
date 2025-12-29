@@ -6,7 +6,8 @@ export const zegoRoutes = Router()
 
 zegoRoutes.get('/token', authMiddleware, async (req: AuthRequest, res) => {
   try {
-    const userId = req.query.user_id as string || req.user!.id
+    const rawUserId = req.query.user_id as string || req.user!.id
+    const userId = rawUserId.replace(/-/g, '').substring(0, 32)
     
     const token = zegoService.generateToken(userId, 3600)
     

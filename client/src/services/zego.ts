@@ -12,6 +12,8 @@ export class ZegoService {
   private typingCallbacks: ((status: TypingStatus) => void)[] = []
   private connectionCallbacks: ((connected: boolean) => void)[] = []
 
+  private shortUserId: string | null = null
+
   static getInstance(): ZegoService {
     if (!ZegoService.instance) {
       ZegoService.instance = new ZegoService()
@@ -25,6 +27,7 @@ export class ZegoService {
     }
 
     const shortUserId = userId.replace(/-/g, '').substring(0, 32)
+    this.shortUserId = shortUserId
 
     try {
       this.zim = ZIM.create({ appID: config.zego.appId })
@@ -85,9 +88,9 @@ export class ZegoService {
 
     this.zim.on('tokenWillExpire', async (_zim: any, { second }: any) => {
       console.log('Token will expire in', second, 'seconds')
-      if (this.currentUserId) {
+      if (this.shortUserId) {
         try {
-          const { token } = await apiService.getZegoToken(this.currentUserId)
+          const { token } = await apiService.getZegoToken(this.shortUserId)
           await this.zim.renewToken(token)
         } catch (error) {
           console.error('Failed to renew token:', error)
@@ -97,10 +100,10 @@ export class ZegoService {
   }
 
   private async reconnect(): Promise<void> {
-    if (this.currentUserId) {
+    if (this.shortUserId) {
       try {
-        const { token } = await apiService.getZegoToken(this.currentUserId)
-        await this.zim.login(this.currentUserId, { userName: this.currentUserId, token })
+        const { token } = await apiService.getZegoToken(this.shortUserId)
+        await this.zim.login(this.shortUserId, { userName: this.shortUserId, token })
       } catch (error) {
         console.error('Reconnection failed:', error)
       }
@@ -292,6 +295,7 @@ export class ZegoService {
       this.zim = null
       this.isInitialized = false
       this.currentUserId = null
+      this.shortUserId = null
       this.notifyConnection(false)
     }
   }
