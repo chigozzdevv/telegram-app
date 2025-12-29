@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { zegoService } from '@/services/zego'
 import { apiService } from '@/services/api'
+import { useAuthStore } from './auth-store'
 import type { Message, Conversation, TypingStatus } from '@/types'
 
 interface ChatState {
@@ -65,6 +66,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const otherUserId = conversation?.other_user?.id
       if (!otherUserId) throw new Error('Could not find other user')
       
+      const currentUser = useAuthStore.getState().user
+      if (!currentUser) throw new Error('Not authenticated')
+      
       const zegoConversationId = otherUserId.replace(/-/g, '').substring(0, 32)
       
       const message = await zegoService.sendMessage(zegoConversationId, content, 'text', replyTo)
@@ -72,13 +76,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
       await apiService.saveMessage({
         id: message.id,
         conversation_id: conversationId,
-        sender_id: message.sender_id,
+        sender_id: currentUser.id,
         content,
         type: 'text',
         reply_to: replyTo,
       })
 
-      const messageWithConvId = { ...message, conversation_id: conversationId }
+      const messageWithConvId = { ...message, conversation_id: conversationId, sender_id: currentUser.id }
       get().addMessage(messageWithConvId)
       get().loadConversations()
     } catch (error) {
@@ -92,6 +96,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const conversation = get().conversations.find(c => c.id === conversationId)
       const otherUserId = conversation?.other_user?.id
       if (!otherUserId) throw new Error('Could not find other user')
+      
+      const currentUser = useAuthStore.getState().user
+      if (!currentUser) throw new Error('Not authenticated')
       
       const zegoConversationId = otherUserId.replace(/-/g, '').substring(0, 32)
       
@@ -107,12 +114,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       await apiService.saveMessage({
         id: message.id,
         conversation_id: conversationId,
-        sender_id: message.sender_id,
+        sender_id: currentUser.id,
         content: message.content,
         type,
       })
 
-      const messageWithConvId = { ...message, conversation_id: conversationId }
+      const messageWithConvId = { ...message, conversation_id: conversationId, sender_id: currentUser.id }
       get().addMessage(messageWithConvId)
       get().loadConversations()
       return messageWithConvId
