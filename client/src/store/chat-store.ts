@@ -58,10 +58,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
             u.id.replace(/-/g, '').substring(0, 32) === visitorId
           )
           
+          let lastMessage = c.lastMessage
+          if (lastMessage?.type === 200) {
+            lastMessage = undefined
+          }
+          
           return {
             id: c.conversationID,
             conversationName: otherUser?.username || c.conversationID,
-            lastMessage: c.lastMessage,
+            lastMessage,
             unreadMessageCount: c.unreadMessageCount || 0,
             orderKey: c.orderKey || 0,
             type: c.type,
@@ -187,13 +192,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const exists = conversationMessages.some(m => m.id === message.id)
       if (exists) return state
 
+      const newRawMessages = message._raw 
+        ? { ...state.rawMessages, [message.id]: message._raw }
+        : state.rawMessages
+
       return {
         messages: {
           ...state.messages,
           [message.conversation_id]: [...conversationMessages, message],
         },
+        rawMessages: newRawMessages,
       }
     })
+    get().loadConversations()
   },
 
   updateMessage: (conversationId, messageId, updates) => {

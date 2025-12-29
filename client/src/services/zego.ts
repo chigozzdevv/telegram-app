@@ -300,7 +300,7 @@ export class ZegoService {
       reply_to: replyTo,
       replied_info: repliedInfo,
       reactions,
-      is_edited: zegoMsg.isUserInserted === false && zegoMsg.timestamp !== zegoMsg.orderKey,
+      is_edited: zegoMsg.isEdited === true,
       is_deleted: false,
       is_read: zegoMsg.receiptStatus === 1,
       created_at: new Date(zegoMsg.timestamp).toISOString(),
