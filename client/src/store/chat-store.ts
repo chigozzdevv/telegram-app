@@ -288,7 +288,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   editMessage: async (messageId, conversationId, content) => {
     try {
       const rawMessage = get().rawMessages[messageId]
-      if (!rawMessage) throw new Error('Message not found')
+      if (!rawMessage) {
+        console.error('Raw message not found for ID:', messageId, 'Available:', Object.keys(get().rawMessages))
+        throw new Error('Message not found')
+      }
       
       const edited = await zegoService.editMessage(rawMessage, content)
       
@@ -310,7 +313,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   deleteMessage: async (messageId, conversationId) => {
     try {
       const rawMessage = get().rawMessages[messageId]
-      if (!rawMessage) throw new Error('Message not found')
+      if (!rawMessage) {
+        console.error('Raw message not found for ID:', messageId, 'Available:', Object.keys(get().rawMessages))
+        throw new Error('Message not found')
+      }
       
       await zegoService.deleteMessages([rawMessage], conversationId)
       
