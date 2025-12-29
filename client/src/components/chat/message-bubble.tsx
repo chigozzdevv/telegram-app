@@ -19,7 +19,9 @@ export function MessageBubble({ message, onReply, conversationId }: MessageBubbl
   const [showReactions, setShowReactions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
-  const isOwn = message.sender_id === user?.id
+  
+  const currentUserShortId = user?.id.replace(/-/g, '').substring(0, 32)
+  const isOwn = message.sender_id === currentUserShortId || message.sender_id === user?.id
 
   const handleEdit = async () => {
     if (editContent.trim() && editContent !== message.content) {
