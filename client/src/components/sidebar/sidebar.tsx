@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAuthStore } from '@/store/auth-store'
-import { useUIStore } from '@/store/ui-store'
 import { ConversationList } from '../conversation/conversation-list'
 import { UserList } from './user-list'
 
@@ -11,7 +10,6 @@ interface SidebarProps {
 
 export function Sidebar({ onSelectConversation, activeConversationId }: SidebarProps) {
   const { user, logout } = useAuthStore()
-  const { theme, toggleTheme } = useUIStore()
   const [showUserList, setShowUserList] = useState(false)
 
   return (
@@ -19,20 +17,12 @@ export function Sidebar({ onSelectConversation, activeConversationId }: SidebarP
       <div className="p-5 border-b border-gray-800">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-xl font-bold text-white">Messages</h1>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-800 transition-colors text-lg"
-            >
-              {theme === 'dark' ? '🌞' : '🌙'}
-            </button>
-            <button
-              onClick={logout}
-              className="px-3 py-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white text-sm transition-colors"
-            >
-              Logout
-            </button>
-          </div>
+          <button
+            onClick={logout}
+            className="px-3 py-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white text-sm transition-colors"
+          >
+            Logout
+          </button>
         </div>
 
         <div className="flex items-center gap-3 mb-5">
