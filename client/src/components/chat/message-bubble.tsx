@@ -85,11 +85,13 @@ export function MessageBubble({ message, onReply, conversationId }: MessageBubbl
       <div className="max-w-[70%]">
         {message.replied_info && (
           <div className="mb-1.5 px-3 py-2 bg-gray-800 rounded-lg border-l-2 border-primary-500">
-            <p className="text-xs text-gray-400 mb-0.5">
-              {message.replied_info.senderUserID}
-            </p>
+            <p className="text-xs text-gray-400 mb-0.5">Reply</p>
             <p className="text-sm text-gray-300 truncate">
-              {message.replied_info.messageInfo?.message || 'Media message'}
+              {message.replied_info.message ||
+               (message.replied_info.type === 11 ? '📷 Image' :
+                message.replied_info.type === 12 ? '📎 File' :
+                message.replied_info.type === 13 ? '🎵 Audio' :
+                message.replied_info.type === 14 ? '🎬 Video' : 'Message')}
             </p>
           </div>
         )}

@@ -276,8 +276,14 @@ export class ZegoService {
     let repliedInfo: any = undefined
 
     if (zegoMsg.repliedInfo) {
-      repliedInfo = zegoMsg.repliedInfo
-      replyTo = zegoMsg.repliedInfo.messageInfo?.messageID?.toString()
+      const ri = zegoMsg.repliedInfo
+      repliedInfo = {
+        senderUserID: ri.senderUserID,
+        message: ri.textMessageContent || ri.messageInfo?.message || ri.message,
+        type: ri.messageType || ri.messageInfo?.type,
+        messageID: ri.messageID || ri.messageInfo?.messageID,
+      }
+      replyTo = repliedInfo.messageID?.toString()
     }
 
     let content = zegoMsg.message || ''
