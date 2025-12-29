@@ -158,7 +158,26 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   startConversation: async (userId) => {
     const shortUserId = userId.replace(/-/g, '').substring(0, 32)
-    await get().loadConversations()
+    const users = await apiService.getUsers()
+    const otherUser = users.find((u: any) => u.id === userId)
+    
+    set((state) => {
+      const exists = state.conversations.some(c => c.id === shortUserId)
+      if (exists) return state
+      
+      return {
+        conversations: [{
+          id: shortUserId,
+          conversationName: otherUser?.username || shortUserId,
+          lastMessage: undefined,
+          unreadMessageCount: 0,
+          orderKey: Date.now(),
+          type: 0,
+          other_user: otherUser,
+        }, ...state.conversations]
+      }
+    })
+    
     return shortUserId
   },
 
