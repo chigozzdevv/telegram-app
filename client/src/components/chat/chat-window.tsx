@@ -33,22 +33,20 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-4">
+      <div className="px-6 py-4 border-b border-gray-800 bg-gray-900">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold">
+          <div className="w-11 h-11 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold text-lg">
             {otherUser?.username?.[0]?.toUpperCase() || '?'}
           </div>
-          <div>
-            <h2 className="font-semibold text-gray-900 dark:text-white">
-              {otherUser?.username || 'Unknown User'}
-            </h2>
-          </div>
+          <h2 className="text-lg font-semibold text-white">
+            {otherUser?.username || 'Unknown User'}
+          </h2>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-6 bg-gray-950">
         {conversationMessages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+          <div className="h-full flex items-center justify-center text-gray-500">
             No messages yet. Start the conversation!
           </div>
         ) : (

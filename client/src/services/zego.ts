@@ -24,13 +24,15 @@ export class ZegoService {
       return
     }
 
+    const shortUserId = userId.replace(/-/g, '').substring(0, 32)
+
     try {
       this.zim = ZIM.create({ appID: config.zego.appId })
       this.setupEventListeners()
       
-      const { token } = await apiService.getZegoToken(userId)
+      const { token } = await apiService.getZegoToken(shortUserId)
       
-      await this.zim.login(userId, { userName: userId, token })
+      await this.zim.login(shortUserId, { userName: shortUserId, token })
       
       this.currentUserId = userId
       this.isInitialized = true

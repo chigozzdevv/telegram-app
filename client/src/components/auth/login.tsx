@@ -21,126 +21,54 @@ export function Login() {
     }
   }
 
-  const inputStyle = {
-    width: '100%',
-    padding: '16px 18px',
-    fontSize: '16px',
-    backgroundColor: '#1a1a2e',
-    border: '1px solid #3a3a5a',
-    borderRadius: '8px',
-    color: 'white',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
-  }
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#0d0d1a',
-      padding: '20px'
-    }}>
-      <div style={{ width: '100%', maxWidth: '400px' }}>
-        <h1 style={{ 
-          fontSize: '32px', 
-          fontWeight: 700, 
-          color: 'white', 
-          marginBottom: '8px',
-          textAlign: 'center'
-        }}>
-          Welcome back
-        </h1>
-        <p style={{ 
-          color: '#888', 
-          fontSize: '16px', 
-          marginBottom: '40px',
-          textAlign: 'center'
-        }}>
-          Sign in to your account
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-950 px-5">
+      <div className="w-full max-w-md">
+        <h1 className="text-3xl font-bold text-white text-center mb-2">Welcome back</h1>
+        <p className="text-gray-400 text-center mb-10">Sign in to your account</p>
 
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{
-              marginBottom: '24px',
-              padding: '16px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              borderRadius: '8px',
-              border: '1px solid #ef4444'
-            }}>
-              <p style={{ color: '#ef4444', fontSize: '14px', margin: 0 }}>{error}</p>
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ 
-              display: 'block', 
-              fontSize: '14px', 
-              fontWeight: 500, 
-              color: '#ccc', 
-              marginBottom: '10px' 
-            }}>
-              Email
-            </label>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              style={inputStyle}
+              className="w-full px-4 py-4 text-base bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{ 
-              display: 'block', 
-              fontSize: '14px', 
-              fontWeight: 500, 
-              color: '#ccc', 
-              marginBottom: '10px' 
-            }}>
-              Password
-            </label>
+          <div className="mb-8">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              style={inputStyle}
+              className="w-full px-4 py-4 text-base bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: '100%',
-              padding: '16px',
-              fontSize: '16px',
-              fontWeight: 600,
-              color: 'white',
-              backgroundColor: '#3b82f6',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1,
-            }}
+            className="w-full py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
 
-          <p style={{ 
-            textAlign: 'center', 
-            marginTop: '32px', 
-            color: '#888', 
-            fontSize: '15px' 
-          }}>
+          <p className="text-center mt-8 text-gray-400">
             Don't have an account?{' '}
-            <Link to="/signup" style={{ color: '#3b82f6', textDecoration: 'none' }}>
+            <Link to="/signup" className="text-primary-400 hover:text-primary-300">
               Sign up
             </Link>
           </p>

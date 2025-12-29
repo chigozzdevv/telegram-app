@@ -13,6 +13,8 @@
   --color-primary-900: #1e3a8a;
 }
 
+@variant dark (&:where(.dark, .dark *));
+
 * {
   margin: 0;
   padding: 0;
@@ -30,13 +32,4 @@ body {
 #root {
   width: 100%;
   height: 100vh;
-}
-
-@layer utilities {
-  .animation-delay-200 {
-    animation-delay: 0.2s;
-  }
-  .animation-delay-400 {
-    animation-delay: 0.4s;
-  }
 }

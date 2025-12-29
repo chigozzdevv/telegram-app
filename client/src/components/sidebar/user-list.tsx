@@ -42,48 +42,38 @@ export function UserList({ onSelectUser }: UserListProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="p-4 border-b border-gray-800">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search users..."
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-            Loading users...
-          </div>
+          <div className="p-6 text-center text-gray-400">Loading users...</div>
         ) : users.length === 0 ? (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-            No users found
-          </div>
+          <div className="p-6 text-center text-gray-400">No users found</div>
         ) : (
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {users.map((user) => (
-              <button
-                key={user.id}
-                onClick={() => handleSelectUser(user.id)}
-                className="w-full p-4 flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="w-12 h-12 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold">
-                  {user.username[0].toUpperCase()}
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {user.username}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {user.email}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
+          users.map((user) => (
+            <button
+              key={user.id}
+              onClick={() => handleSelectUser(user.id)}
+              className="w-full p-4 flex items-center gap-3 border-b border-gray-800 hover:bg-gray-800 transition-colors text-left"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold text-lg shrink-0">
+                {user.username[0].toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-white">{user.username}</p>
+                <p className="text-sm text-gray-400 mt-1">{user.email}</p>
+              </div>
+            </button>
+          ))
         )}
       </div>
     </div>

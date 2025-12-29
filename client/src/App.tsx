@@ -13,8 +13,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!initialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-gray-900 dark:text-white">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+        Loading...
       </div>
     )
   }
@@ -45,16 +45,16 @@ function ChatLayout() {
   }, [addMessage, updateTypingStatus])
 
   return (
-    <div className="flex h-screen bg-white dark:bg-gray-900">
+    <div className="flex h-screen bg-gray-950">
       <Sidebar
         onSelectConversation={setActiveConversation}
         activeConversationId={activeConversationId}
       />
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         {activeConversationId ? (
           <ChatWindow conversationId={activeConversationId} />
         ) : (
-          <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
+          <div className="h-full flex items-center justify-center text-gray-500 text-base">
             Select a conversation to start chatting
           </div>
         )}
@@ -72,8 +72,8 @@ export function App() {
 
   if (!initialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-gray-900 dark:text-white">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+        Loading...
       </div>
     )
   }

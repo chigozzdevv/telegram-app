@@ -15,56 +15,46 @@ export function Sidebar({ onSelectConversation, activeConversationId }: SidebarP
   const [showUserList, setShowUserList] = useState(false)
 
   return (
-    <div className="w-80 border-r border-gray-200 dark:border-gray-700 flex flex-col bg-white dark:bg-gray-900">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Messages</h1>
+    <div className="w-80 min-w-80 border-r border-gray-800 flex flex-col bg-gray-900 h-full">
+      <div className="p-5 border-b border-gray-800">
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="text-xl font-bold text-white">Messages</h1>
           <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title="Toggle theme"
+              className="p-2 rounded-lg hover:bg-gray-800 transition-colors text-lg"
             >
               {theme === 'dark' ? '🌞' : '🌙'}
             </button>
             <button
               onClick={logout}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
-              title="Logout"
+              className="px-3 py-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white text-sm transition-colors"
             >
               Logout
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-12 h-12 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold text-lg">
             {user?.username?.[0]?.toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 dark:text-white truncate">
-              {user?.username}
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {user?.email}
-            </p>
+            <p className="font-semibold text-white truncate">{user?.username}</p>
+            <p className="text-sm text-gray-400 truncate">{user?.email}</p>
           </div>
         </div>
 
         <button
           onClick={() => setShowUserList(!showUserList)}
-          className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          className="w-full py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
         >
           {showUserList ? 'Show Conversations' : 'New Chat'}
         </button>
       </div>
 
       {showUserList ? (
-        <UserList
-          onSelectUser={() => {
-            setShowUserList(false)
-          }}
-        />
+        <UserList onSelectUser={() => setShowUserList(false)} />
       ) : (
         <ConversationList
           onSelectConversation={onSelectConversation}
