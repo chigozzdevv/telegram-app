@@ -6,13 +6,16 @@ export const userRoutes = Router()
 
 userRoutes.get('/', authMiddleware, async (req: AuthRequest, res) => {
   try {
-    const { search } = req.query
+    const { search, exclude_self } = req.query
     
     let query = supabase
       .from('users')
       .select('id, username, email, avatar_url, created_at')
-      .neq('id', req.user!.id)
       .order('username')
+
+    if (exclude_self === 'true') {
+      query = query.neq('id', req.user!.id)
+    }
 
     if (search && typeof search === 'string') {
       query = query.or(`username.ilike.%${search}%,email.ilike.%${search}%`)

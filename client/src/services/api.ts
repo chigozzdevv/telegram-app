@@ -37,8 +37,10 @@ export const apiService = {
     return response.data
   },
 
-  async getUsers(search?: string): Promise<any[]> {
-    const response = await api.get('/api/users', { params: { search } })
+  async getUsers(search?: string, excludeSelf?: boolean): Promise<any[]> {
+    const response = await api.get('/api/users', { 
+      params: { search, exclude_self: excludeSelf ? 'true' : undefined } 
+    })
     return response.data
   },
 

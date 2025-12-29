@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useAuthStore } from '@/store/auth-store'
 import { useChatStore } from '@/store/chat-store'
 import { apiService } from '@/services/api'
 import type { User } from '@/types'
@@ -9,7 +8,6 @@ interface UserListProps {
 }
 
 export function UserList({ onSelectUser }: UserListProps) {
-  const { user: currentUser } = useAuthStore()
   const { startConversation, setActiveConversation } = useChatStore()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -22,8 +20,8 @@ export function UserList({ onSelectUser }: UserListProps) {
   const loadUsers = async () => {
     try {
       setLoading(true)
-      const data = await apiService.getUsers(search)
-      setUsers(data.filter((u: User) => u.id !== currentUser?.id))
+      const data = await apiService.getUsers(search, true)
+      setUsers(data)
     } catch (error) {
       console.error('Failed to load users:', error)
     } finally {

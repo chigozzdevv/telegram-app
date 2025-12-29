@@ -53,18 +53,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const conversations: Conversation[] = zegoConversations
         .filter((c: any) => c.type === 0)
         .map((c: any) => {
-          const oderId = c.conversationID
-          const fullUserId = users.find((u: any) => 
-            u.id.replace(/-/g, '').substring(0, 32) === oderId
-          )?.id
-          const otherUser = users.find((u: any) => u.id === fullUserId)
+          const visitorId = c.conversationID
+          const otherUser = users.find((u: any) => 
+            u.id.replace(/-/g, '').substring(0, 32) === visitorId
+          )
           
           return {
             id: c.conversationID,
-            conversationName: c.conversationName || otherUser?.username,
+            conversationName: otherUser?.username || c.conversationID,
             lastMessage: c.lastMessage,
-            unreadMessageCount: c.unreadMessageCount,
-            orderKey: c.orderKey,
+            unreadMessageCount: c.unreadMessageCount || 0,
+            orderKey: c.orderKey || 0,
             type: c.type,
             other_user: otherUser,
           }

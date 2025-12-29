@@ -16,9 +16,19 @@ export function Sidebar({ onSelectConversation, activeConversationId }: SidebarP
 
   const handleClearAll = async () => {
     if (confirm('Delete all conversations and messages? This cannot be undone.')) {
-      const { zegoService } = await import('@/services/zego')
-      await zegoService.deleteAllConversations()
-      await loadConversations()
+      try {
+        const { zegoService } = await import('@/services/zego')
+        const convos = await zegoService.queryConversationList()
+        for (const c of convos) {
+          await zegoService.deleteAllMessages(c.conversationID)
+          await zegoService.deleteConversation(c.conversationID)
+        }
+        await loadConversations()
+        window.location.reload()
+      } catch (err) {
+        console.error('Clear failed:', err)
+        alert('Failed to clear: ' + (err as Error).message)
+      }
     }
   }
 
