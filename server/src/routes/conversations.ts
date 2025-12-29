@@ -118,13 +118,7 @@ conversationRoutes.get('/:id/messages', authMiddleware, async (req: AuthRequest,
       .from('messages')
       .select(`
         *,
-        sender:users!messages_sender_id_fkey(id, username, email, avatar_url),
-        replied_message:messages!messages_reply_to_fkey(
-          id,
-          content,
-          sender:users!messages_sender_id_fkey(id, username)
-        ),
-        reactions:message_reactions(user_id, emoji, created_at)
+        sender:users!messages_sender_id_fkey(id, username, email, avatar_url)
       `)
       .eq('conversation_id', id)
       .order('created_at', { ascending: true })
@@ -135,9 +129,11 @@ conversationRoutes.get('/:id/messages', authMiddleware, async (req: AuthRequest,
     }
 
     const { data: messages, error } = await query
-    if (error) throw error
+    if (error) {
+      console.error('Messages query error:', error)
+      throw error
+    }
 
-    // Get read status for the other participant
     const { data: conversation } = await supabase
       .from('conversations')
       .select('participant_ids')
@@ -158,10 +154,11 @@ conversationRoutes.get('/:id/messages', authMiddleware, async (req: AuthRequest,
       otherUserLastRead = status?.last_read_at || null
     }
 
-    // Add read status to each message
     const messagesWithStatus = messages?.map(msg => ({
       ...msg,
-      is_read: msg.sender_id === userId && otherUserLastRead && new Date(msg.created_at) <= new Date(otherUserLastRead)
+      is_read: msg.sender_id === userId && otherUserLastRead && new Date(msg.created_at) <= new Date(otherUserLastRead),
+      replied_message: null,
+      reactions: []
     }))
 
     res.json(messagesWithStatus || [])
